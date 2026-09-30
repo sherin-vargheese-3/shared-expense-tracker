@@ -1,0 +1,37 @@
+spring:
+  application:
+    name: shared-expense-tracker
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5433/expenses}
+    username: ${DB_USERNAME:expenses}
+    password: ${DB_PASSWORD:expenses}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+  mvc:
+    problemdetails:
+      enabled: true
+
+server:
+  port: ${SERVER_PORT:8080}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+  default-produces-media-type: application/json
+  default-consumes-media-type: application/json
