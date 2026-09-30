@@ -21,9 +21,9 @@ function mockGroupApi() {
           splitType: 'EQUAL',
           createdAt: '2026-09-02T19:30:00Z',
           splits: [
-            { memberId: 1, memberName: 'Alice', amount: 30 },
-            { memberId: 2, memberName: 'Bob', amount: 30 },
-            { memberId: 3, memberName: 'Carol', amount: 30 },
+            { memberId: 1, memberName: 'Alice', memberRemoved: false, amount: 30 },
+            { memberId: 2, memberName: 'Bob', memberRemoved: false, amount: 30 },
+            { memberId: 3, memberName: 'Carol', memberRemoved: false, amount: 30 },
           ],
         },
       ]),
@@ -276,5 +276,59 @@ describe('GroupPage', () => {
       expect(await screen.findByText('An unexpected error occurred')).toBeInTheDocument()
       expect(screen.getByRole('dialog', { name: 'Delete Goa trip?' })).toBeInTheDocument()
     })
+  })
+
+  it('labels former members in history so they are not confused with a namesake', async () => {
+    mockGroupApi()
+    const formerBob = { id: 9, name: 'Bob', removed: true }
+    server.use(
+      http.get('/api/groups/7/expenses', () =>
+        HttpResponse.json([
+          {
+            id: 2,
+            description: 'Dinner',
+            amount: 30,
+            paidBy: alice,
+            splitType: 'EQUAL',
+            createdAt: '2026-09-03T19:30:00Z',
+            splits: [
+              { memberId: 1, memberName: 'Alice', memberRemoved: false, amount: 15 },
+              { memberId: 2, memberName: 'Bob', memberRemoved: false, amount: 15 },
+            ],
+          },
+          {
+            id: 1,
+            description: 'Lunch',
+            amount: 20,
+            paidBy: formerBob,
+            splitType: 'EQUAL',
+            createdAt: '2026-09-02T12:30:00Z',
+            splits: [
+              { memberId: 1, memberName: 'Alice', memberRemoved: false, amount: 10 },
+              { memberId: 9, memberName: 'Bob', memberRemoved: true, amount: 10 },
+            ],
+          },
+        ]),
+      ),
+      http.get('/api/groups/7/settlements', () =>
+        HttpResponse.json([
+          { id: 1, from: formerBob, to: alice, amount: 10, createdAt: '2026-09-02T13:00:00Z' },
+        ]),
+      ),
+    )
+    renderWithProviders(<AppRoutes />, { route: '/groups/7' })
+
+    await screen.findByRole('heading', { level: 1, name: 'Goa trip' })
+    const expenses = screen.getByRole('region', { name: 'Expenses' })
+    expect(
+      await within(expenses).findByText(/Split equally: Alice 15.00, Bob 15.00$/),
+    ).toBeInTheDocument()
+    expect(within(expenses).getByText(/Paid by Bob \(former member\)/)).toBeInTheDocument()
+    expect(
+      within(expenses).getByText(/Split equally: Alice 10.00, Bob \(former member\) 10.00/),
+    ).toBeInTheDocument()
+
+    const payments = screen.getByRole('region', { name: 'Payments' })
+    expect(await within(payments).findByText('Bob (former member) paid Alice')).toBeInTheDocument()
   })
 })

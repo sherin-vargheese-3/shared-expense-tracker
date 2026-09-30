@@ -169,7 +169,8 @@ explains this before offering the button.
 - A member **with history** is *soft-removed* (`removed_at` is set): they disappear from the member list,
   balances, member counts and forms, and can't be used in new expenses or payments, but past expenses and
   payments still show their name. Their name becomes available again (the unique index only covers active
-  members).
+  members). Responses flag them (`removed` on members, `memberRemoved` on splits) and the UI shows
+  "Bob (former member)", so history can't be confused with a new member of the same name.
 
 Deleting a group is permanent and removes its members, expenses, splits and payments. The UI asks for
 confirmation and warns if balances are unsettled. Rows are deleted in dependency order in one transaction,

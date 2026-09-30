@@ -6,6 +6,7 @@ import Typography from '@mui/material/Typography'
 import type { ReactNode } from 'react'
 import { useSettlements } from '../../api/hooks'
 import { formatDateTime } from '../../lib/dates'
+import { displayName } from '../../lib/members'
 import { formatAmount } from '../../lib/money'
 import { QueryError } from '../QueryError'
 import { SectionCard } from '../SectionCard'
@@ -26,7 +27,10 @@ export function SettlementsCard({ groupId, action }: { groupId: number; action?:
           {data.map((s) => (
             <ListItem key={s.id} disableGutters>
               <ListItemText
-                primary={`${s.from.name} paid ${s.to.name}`}
+                primary={`${displayName(s.from.name, s.from.removed)} paid ${displayName(
+                  s.to.name,
+                  s.to.removed,
+                )}`}
                 secondary={formatDateTime(s.createdAt)}
               />
               <Typography sx={{ fontWeight: 500, ml: 2 }}>{formatAmount(s.amount)}</Typography>

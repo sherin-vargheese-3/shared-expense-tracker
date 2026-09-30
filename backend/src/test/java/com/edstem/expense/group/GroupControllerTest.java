@@ -42,7 +42,7 @@ class GroupControllerTest {
     when(groupService.createGroup(any()))
         .thenReturn(
             new GroupResponse(
-                7L, "Trip", Instant.now(), List.of(new MemberResponse(1L, "Alice"))));
+                7L, "Trip", Instant.now(), List.of(new MemberResponse(1L, "Alice", false))));
 
     mockMvc
         .perform(postJson("/api/groups", "{\"name\":\"Trip\",\"members\":[\"Alice\"]}"))
@@ -107,7 +107,7 @@ class GroupControllerTest {
 
   @Test
   void addMemberReturns201() throws Exception {
-    when(groupService.addMember(eq(1L), any())).thenReturn(new MemberResponse(3L, "Charlie"));
+    when(groupService.addMember(eq(1L), any())).thenReturn(new MemberResponse(3L, "Charlie", false));
 
     mockMvc
         .perform(postJson("/api/groups/1/members", "{\"name\":\"Charlie\"}"))

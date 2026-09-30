@@ -1,6 +1,8 @@
 export interface Member {
   id: number
   name: string
+  /** A former member who still appears in history; a new member may reuse the name. */
+  removed: boolean
 }
 
 export interface GroupSummary {
@@ -26,7 +28,7 @@ export interface Expense {
   paidBy: Member
   splitType: SplitType
   createdAt: string
-  splits: { memberId: number; memberName: string; amount: number }[]
+  splits: { memberId: number; memberName: string; memberRemoved: boolean; amount: number }[]
 }
 
 export interface Balance {

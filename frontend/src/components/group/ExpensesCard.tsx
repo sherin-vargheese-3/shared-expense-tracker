@@ -7,12 +7,15 @@ import type { ReactNode } from 'react'
 import { useExpenses } from '../../api/hooks'
 import type { Expense } from '../../api/types'
 import { formatDateTime } from '../../lib/dates'
+import { displayName } from '../../lib/members'
 import { formatAmount } from '../../lib/money'
 import { QueryError } from '../QueryError'
 import { SectionCard } from '../SectionCard'
 
 function splitSummary(expense: Expense): string {
-  const shares = expense.splits.map((s) => `${s.memberName} ${formatAmount(s.amount)}`).join(', ')
+  const shares = expense.splits
+    .map((s) => `${displayName(s.memberName, s.memberRemoved)} ${formatAmount(s.amount)}`)
+    .join(', ')
   const kind = expense.splitType === 'EQUAL' ? 'Split equally' : 'Exact split'
   return `${kind}: ${shares}`
 }
@@ -36,7 +39,7 @@ export function ExpensesCard({ groupId, action }: { groupId: number; action?: Re
                 primary={e.description}
                 secondary={
                   <>
-                    Paid by {e.paidBy.name} · {formatDateTime(e.createdAt)}
+                    Paid by {displayName(e.paidBy.name, e.paidBy.removed)} · {formatDateTime(e.createdAt)}
                     <br />
                     {splitSummary(e)}
                   </>

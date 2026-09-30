@@ -4,6 +4,7 @@ import com.edstem.expense.common.Money;
 import com.edstem.expense.expense.Expense;
 import com.edstem.expense.expense.SplitType;
 import com.edstem.expense.group.dto.MemberResponse;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.Comparator;
@@ -18,7 +19,12 @@ public record ExpenseResponse(
     Instant createdAt,
     List<SplitResponse> splits) {
 
-  public record SplitResponse(Long memberId, String memberName, BigDecimal amount) {}
+  public record SplitResponse(
+      Long memberId,
+      String memberName,
+      @Schema(description = "True if this member has since been removed from the group")
+          boolean memberRemoved,
+      BigDecimal amount) {}
 
   public static ExpenseResponse from(Expense expense) {
     List<SplitResponse> splits =
@@ -28,6 +34,7 @@ public record ExpenseResponse(
                     new SplitResponse(
                         s.getMember().getId(),
                         s.getMember().getName(),
+                        !s.getMember().isActive(),
                         Money.toAmount(s.getShareCents())))
             .sorted(Comparator.comparing(SplitResponse::memberId))
             .toList();

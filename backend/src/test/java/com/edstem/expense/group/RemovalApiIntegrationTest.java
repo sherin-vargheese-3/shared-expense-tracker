@@ -150,7 +150,40 @@ class RemovalApiIntegrationTest {
 
     // The name is free again, as a new member.
     postJson("/api/groups/" + groupId + "/members", "{\"name\":\"bob\"}")
-        .andExpect(status().isCreated());
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.removed").value(false));
+  }
+
+  @Test
+  void historyDistinguishesAFormerMemberFromANewOneWithTheSameName() throws Exception {
+    addExpense(alice, alice, bob);
+    settle(bob, alice, "10.00");
+    removeMember(bob).andExpect(status().isNoContent());
+    String body =
+        postJson("/api/groups/" + groupId + "/members", "{\"name\":\"Bob\"}")
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+    long newBob = ((Number) JsonPath.read(body, "$.id")).longValue();
+    addExpense(alice, alice, newBob);
+
+    String oldBobSplit = "$[1].splits[?(@.memberId == %d)]".formatted(bob);
+    String newBobSplit = "$[0].splits[?(@.memberId == %d)]".formatted(newBob);
+    mockMvc
+        .perform(get("/api/groups/{id}/expenses", groupId))
+        .andExpect(jsonPath(oldBobSplit + ".memberName").value("Bob"))
+        .andExpect(jsonPath(oldBobSplit + ".memberRemoved").value(true))
+        .andExpect(jsonPath(newBobSplit + ".memberName").value("Bob"))
+        .andExpect(jsonPath(newBobSplit + ".memberRemoved").value(false))
+        .andExpect(jsonPath("$[0].paidBy.removed").value(false));
+    mockMvc
+        .perform(get("/api/groups/{id}/settlements", groupId))
+        .andExpect(jsonPath("$[0].from.id").value(bob))
+        .andExpect(jsonPath("$[0].from.removed").value(true))
+        .andExpect(jsonPath("$[0].to.removed").value(false));
+    mockMvc
+        .perform(get("/api/groups/{id}", groupId))
+        .andExpect(jsonPath("$.members[*].removed").value(not(hasItem(true))));
   }
 
   @Test

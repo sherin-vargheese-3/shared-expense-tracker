@@ -1,8 +1,8 @@
 import type { Group, Member } from '../api/types'
 
-export const alice: Member = { id: 1, name: 'Alice' }
-export const bob: Member = { id: 2, name: 'Bob' }
-export const carol: Member = { id: 3, name: 'Carol' }
+export const alice: Member = { id: 1, name: 'Alice', removed: false }
+export const bob: Member = { id: 2, name: 'Bob', removed: false }
+export const carol: Member = { id: 3, name: 'Carol', removed: false }
 
 export const tripGroup: Group = {
   id: 7,
